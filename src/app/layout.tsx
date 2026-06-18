@@ -11,7 +11,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "WeeklyPickEm",
-  description: "Pick winners in NFL, ACC, SEC, and Big Ten football leagues",
+  description: "Pick winners in NFL, MLB, ACC, SEC, and Big Ten leagues",
 };
 
 export default async function RootLayout({

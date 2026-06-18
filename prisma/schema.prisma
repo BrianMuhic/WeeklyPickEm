@@ -9,6 +9,7 @@ datasource db {
 
 enum LeagueType {
   NFL
+  MLB
   ACC
   SEC
   BIG_TEN
@@ -16,11 +17,13 @@ enum LeagueType {
 
 enum Sport {
   NFL
+  MLB
   COLLEGE_FOOTBALL
 }
 
 enum Conference {
   NFL
+  MLB
   ACC
   SEC
   BIG_TEN

@@ -3,7 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { LEAGUE_TYPE_TO_CONFERENCE } from "@/lib/constants";
 
 export function sportForLeague(leagueType: LeagueType): Sport {
-  return leagueType === LeagueType.NFL ? Sport.NFL : Sport.COLLEGE_FOOTBALL;
+  if (leagueType === LeagueType.NFL) return Sport.NFL;
+  if (leagueType === LeagueType.MLB) return Sport.MLB;
+  return Sport.COLLEGE_FOOTBALL;
 }
 
 export async function getLeagueGames(leagueType: LeagueType, season: number, week: number) {
@@ -16,7 +18,7 @@ export async function getLeagueGames(leagueType: LeagueType, season: number, wee
     orderBy: { kickoff: "asc" },
   });
 
-  if (leagueType === LeagueType.NFL) {
+  if (leagueType === LeagueType.NFL || leagueType === LeagueType.MLB) {
     return games;
   }
 

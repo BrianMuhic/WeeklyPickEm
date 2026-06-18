@@ -23,6 +23,8 @@ function mapLeagueTypeToConference(leagueType: string): Conference {
 
 const ESPN_CONFERENCE_MAP: Record<string, Conference> = {
   nfl: Conference.NFL,
+  mlb: Conference.MLB,
+  "major league baseball": Conference.MLB,
   acc: Conference.ACC,
   "atlantic coast": Conference.ACC,
   sec: Conference.SEC,
@@ -54,6 +56,9 @@ export function conferenceMatchesLeague(
 ) {
   if (leagueConference === Conference.NFL) {
     return conference === Conference.NFL;
+  }
+  if (leagueConference === Conference.MLB) {
+    return conference === Conference.MLB;
   }
   return conference === leagueConference;
 }
