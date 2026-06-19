@@ -30,6 +30,12 @@ enum Conference {
   OTHER
 }
 
+enum PickLockOverride {
+  AUTO
+  LOCKED
+  UNLOCKED
+}
+
 model User {
   id              String    @id @default(cuid())
   name            String
@@ -131,11 +137,12 @@ model Pick {
 }
 
 model PickDeadline {
-  id       String   @id @default(cuid())
-  leagueId String
-  week     Int
-  season   Int
-  deadline DateTime
+  id           String           @id @default(cuid())
+  leagueId     String
+  week         Int
+  season       Int
+  deadline     DateTime
+  lockOverride PickLockOverride @default(AUTO)
 
   league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
 

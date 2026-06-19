@@ -1,4 +1,4 @@
-import { Conference, LeagueType, Sport } from "@/generated/prisma/client";
+import { Conference, LeagueType, PickLockOverride, Sport } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { LEAGUE_TYPE_TO_CONFERENCE } from "@/lib/constants";
 
@@ -88,7 +88,14 @@ export async function ensurePickDeadline(leagueId: string, leagueType: LeagueTyp
 }
 
 export async function canMakePicks(leagueId: string, leagueType: LeagueType, season: number, week: number) {
-  const deadline = await ensurePickDeadline(leagueId, leagueType, season, week);
+  const record = await prisma.pickDeadline.findUnique({
+    where: { leagueId_week_season: { leagueId, week, season } },
+  });
+
+  if (record?.lockOverride === PickLockOverride.LOCKED) return false;
+  if (record?.lockOverride === PickLockOverride.UNLOCKED) return true;
+
+  const deadline = record?.deadline ?? (await ensurePickDeadline(leagueId, leagueType, season, week));
   if (!deadline) return true;
   return new Date() < deadline;
 }

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { LeagueToolbar } from "@/components/LeagueToolbar";
 import { LeagueNav } from "@/components/LeagueNav";
 import { PicksForm } from "@/components/PicksForm";
+import { PicksLockButton } from "@/components/PicksLockButton";
 import { WeekSelector } from "@/components/WeekSelector";
 import { getCurrentUser } from "@/lib/auth";
 import { LEAGUE_TYPE_LABELS } from "@/lib/constants";
@@ -69,7 +70,17 @@ export default async function LeaguePicksPage({
       </div>
 
       <div className="card">
-        <h2 className="mb-4 text-xl font-semibold">Week {week} Picks</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <h2 className="text-xl font-semibold">Week {week} Picks</h2>
+          {isCommissioner && (
+            <PicksLockButton
+              leagueId={id}
+              week={week}
+              season={league.season}
+              picksOpen={picksOpen}
+            />
+          )}
+        </div>
         <PicksForm
           leagueId={id}
           week={week}

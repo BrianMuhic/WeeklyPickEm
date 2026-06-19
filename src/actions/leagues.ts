@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { LeagueType } from "@/generated/prisma/client";
+import { LeagueType, PickLockOverride } from "@/generated/prisma/client";
 import { requireUser, hashPassword, verifyPassword } from "@/lib/auth";
 import { currentSeasonYear } from "@/lib/constants";
+import { canMakePicks, ensurePickDeadline } from "@/lib/games";
 import { prisma } from "@/lib/prisma";
 import { syncGamesForLeagueType } from "@/lib/espn/sync";
 import { changeLeaguePasswordSchema, createLeagueSchema } from "@/lib/validations";
@@ -219,4 +220,28 @@ export async function setDeadlineAction(
 
   revalidatePath(`/leagues/${leagueId}`);
   return { success: "Deadline updated" };
+}
+
+export async function togglePicksLockAction(
+  leagueId: string,
+  week: number,
+  season: number
+): Promise<ActionResult> {
+  const user = await requireUser();
+  const league = await prisma.league.findUnique({ where: { id: leagueId } });
+  if (!league || league.commissionerId !== user.id) {
+    return { error: "Only the commissioner can lock or unlock picks" };
+  }
+
+  const picksOpen = await canMakePicks(leagueId, league.leagueType, season, week);
+  const lockOverride = picksOpen ? PickLockOverride.LOCKED : PickLockOverride.UNLOCKED;
+
+  await ensurePickDeadline(leagueId, league.leagueType, season, week);
+  await prisma.pickDeadline.update({
+    where: { leagueId_week_season: { leagueId, week, season } },
+    data: { lockOverride },
+  });
+
+  revalidatePath(`/leagues/${leagueId}`);
+  return { success: picksOpen ? "Picks locked" : "Picks unlocked" };
 }
