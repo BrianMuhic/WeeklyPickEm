@@ -3,6 +3,7 @@ import { LeagueToolbar } from "@/components/LeagueToolbar";
 import { LeagueNav } from "@/components/LeagueNav";
 import { WeekSelector } from "@/components/WeekSelector";
 import { getCurrentUser } from "@/lib/auth";
+import { formatGameDateTime } from "@/lib/datetime";
 import { getLeagueContext } from "@/lib/league-data";
 
 export default async function GamesPage({
@@ -56,7 +57,7 @@ export default async function GamesPage({
             <tbody>
               {games.map((g) => (
                 <tr key={g.id}>
-                  <td className="text-sm">{new Date(g.kickoff).toLocaleString()}</td>
+                  <td className="text-sm">{formatGameDateTime(g.kickoff)}</td>
                   <td>
                     {g.awayTeam.abbreviation} @ {g.homeTeam.abbreviation}
                   </td>

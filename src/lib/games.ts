@@ -44,13 +44,13 @@ export async function getFirstKickoff(leagueType: LeagueType, season: number, we
 }
 
 export async function ensurePickDeadline(leagueId: string, leagueType: LeagueType, season: number, week: number) {
-  const existing = await prisma.pickDeadline.findUnique({
-    where: { leagueId_week_season: { leagueId, week, season } },
-  });
-  if (existing) return existing.deadline;
-
   const firstKickoff = await getFirstKickoff(leagueType, season, week);
-  if (!firstKickoff) return null;
+  if (!firstKickoff) {
+    const existing = await prisma.pickDeadline.findUnique({
+      where: { leagueId_week_season: { leagueId, week, season } },
+    });
+    return existing?.deadline ?? null;
+  }
 
   const deadline = await prisma.pickDeadline.upsert({
     where: { leagueId_week_season: { leagueId, week, season } },

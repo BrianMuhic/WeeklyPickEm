@@ -6,6 +6,7 @@ import { PicksForm } from "@/components/PicksForm";
 import { WeekSelector } from "@/components/WeekSelector";
 import { getCurrentUser } from "@/lib/auth";
 import { LEAGUE_TYPE_LABELS } from "@/lib/constants";
+import { formatGameDateTime } from "@/lib/datetime";
 import { getLeagueContext, getUserPicksForWeek } from "@/lib/league-data";
 
 export default async function LeaguePicksPage({
@@ -71,7 +72,7 @@ export default async function LeaguePicksPage({
           leagueId={id}
           week={week}
           canPick={picksOpen}
-          deadline={deadline ? new Date(deadline).toLocaleString() : null}
+          deadline={deadline ? formatGameDateTime(deadline) : null}
           games={games.map((g) => ({
             id: g.id,
             away: g.awayTeam.abbreviation,

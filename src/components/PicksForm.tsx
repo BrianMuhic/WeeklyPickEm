@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { submitPicksAction } from "@/actions/picks";
 import { Alert } from "./Alert";
 import type { ActionResult } from "@/actions/auth";
+import { formatGameDateTime } from "@/lib/datetime";
 
 type GameRow = {
   id: string;
@@ -60,7 +61,7 @@ export function PicksForm({
           {games.map((game) => (
             <div key={game.id} className="game-row">
               <div className="text-sm muted mb-2">
-                {new Date(game.kickoff).toLocaleString()}
+                {formatGameDateTime(game.kickoff)}
                 {game.winner && (
                   <span className="ml-2">
                     Final: {game.awayScore} - {game.homeScore}
