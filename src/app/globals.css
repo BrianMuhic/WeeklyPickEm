@@ -30,6 +30,16 @@ a:hover {
   text-decoration: underline;
 }
 
+.nav-brand {
+  color: white;
+  text-decoration: none;
+}
+
+.nav-brand:hover {
+  color: white;
+  text-decoration: none;
+}
+
 .wrap {
   max-width: 960px;
   margin: 0 auto;
