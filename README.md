@@ -54,3 +54,36 @@ Set `ADMIN_EMAILS` in `.env` to a comma-separated list of admin email addresses.
 ## Password Reset
 
 In development, reset links are logged to the server console. For production, set `RESEND_API_KEY` and `EMAIL_FROM`.
+
+## Deploy to Vercel + Neon
+
+### 1. Create a Neon database
+
+1. Sign up at [neon.tech](https://neon.tech) and create a project.
+2. Copy both connection strings from the dashboard:
+   - **Pooled** → `DATABASE_URL` (hostname includes `-pooler`)
+   - **Direct** → `DIRECT_URL` (used for migrations during build)
+
+### 2. Deploy on Vercel
+
+1. Push this repo to GitHub.
+2. Import the repo at [vercel.com/new](https://vercel.com/new).
+3. Add these environment variables in Vercel **before** the first deploy:
+
+| Variable | Value |
+|----------|-------|
+| `DATABASE_URL` | Neon **pooled** connection string |
+| `DIRECT_URL` | Neon **direct** connection string |
+| `SESSION_SECRET` | Random string, at least 32 characters |
+| `ADMIN_EMAILS` | Your admin email(s), comma-separated |
+| `APP_URL` | Your Vercel URL, e.g. `https://weeklypickem.vercel.app` |
+
+4. Deploy. The build runs `prisma migrate deploy` automatically to set up the schema.
+
+### 3. Custom domain (optional)
+
+In Vercel → Project → Settings → Domains, add your domain and follow the DNS instructions. Then update `APP_URL` to match.
+
+### 4. Password reset email (optional)
+
+Sign up at [resend.com](https://resend.com), verify your domain, and add `RESEND_API_KEY` and `EMAIL_FROM` in Vercel.
