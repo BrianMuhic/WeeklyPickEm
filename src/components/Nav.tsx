@@ -6,7 +6,10 @@ export function Nav({ user }: { user: SessionUser | null }) {
   return (
     <nav className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <Link href="/" className="text-lg font-bold">
+        <Link
+          href="/"
+          className="text-2xl font-black text-white no-underline hover:text-white hover:no-underline"
+        >
           Pickonomics
         </Link>
         {user && (
