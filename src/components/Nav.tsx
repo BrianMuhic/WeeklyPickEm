@@ -6,8 +6,8 @@ export function Nav({ user }: { user: SessionUser | null }) {
   return (
     <nav className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <Link href="/" className="btn">
-          Home
+        <Link href="/" className="text-lg font-bold">
+          Pickonomics
         </Link>
         {user && (
           <>

@@ -80,7 +80,7 @@ export default async function HomePage({
   return (
     <div className="space-y-8">
       <div className="card">
-        <h1 className="mb-2 text-3xl font-bold">WeeklyPickEm</h1>
+        <h1 className="mb-2 text-3xl font-bold">Pickonomics</h1>
         <p className="muted">
           Pick winners in NFL, MLB, ACC, SEC, and Big Ten leagues. Compete weekly and climb the season
           leaderboard.

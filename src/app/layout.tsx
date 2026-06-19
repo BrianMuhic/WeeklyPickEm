@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "WeeklyPickEm",
+  title: "Pickonomics",
   description: "Pick winners in NFL, MLB, ACC, SEC, and Big Ten leagues",
 };
 

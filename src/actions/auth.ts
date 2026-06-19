@@ -130,9 +130,9 @@ export async function forgotPasswordAction(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: process.env.EMAIL_FROM || "WeeklyPickEm <onboarding@resend.dev>",
+          from: process.env.EMAIL_FROM || "Pickonomics <onboarding@resend.dev>",
           to: email,
-          subject: "Reset your WeeklyPickEm password",
+          subject: "Reset your Pickonomics password",
           html: `<p>Click <a href="${resetUrl}">here</a> to reset your password. This link expires in 1 hour.</p>`,
         }),
       });
