@@ -9,7 +9,7 @@ import { getLeagueContext, leaguePathWithWeek } from "@/lib/league-data";
 const STATUS_LABELS: Record<string, string> = {
   status_final: "Final",
   status_in_progress: "In Progress",
-  status_post_poned: "Postponed",
+  status_postponed: "Postponed",
   status_scheduled: "Scheduled",
 };
 
