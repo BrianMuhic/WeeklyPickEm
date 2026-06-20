@@ -6,6 +6,13 @@ import { getCurrentUser } from "@/lib/auth";
 import { formatGameDateTime } from "@/lib/datetime";
 import { getLeagueContext, leaguePathWithWeek } from "@/lib/league-data";
 
+const STATUS_LABELS: Record<string, string> = {
+  status_final: "Final",
+  status_in_progress: "In Progress",
+  status_post_poned: "Postponed",
+  status_scheduled: "Scheduled",
+};
+
 export default async function GamesPage({
   params,
   searchParams,
@@ -69,7 +76,7 @@ export default async function GamesPage({
                       ? `${g.awayScore} - ${g.homeScore}`
                       : "—"}
                   </td>
-                  <td className="capitalize">{g.status}</td>
+                  <td>{STATUS_LABELS[g.status] ?? g.status}</td>
                 </tr>
               ))}
             </tbody>
