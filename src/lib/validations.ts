@@ -34,3 +34,10 @@ export const changeLeaguePasswordSchema = z.object({
   newPassword: z.string().min(4, "New league password must be at least 4 characters").max(72),
   accountPassword: z.string().min(1, "Account password is required"),
 });
+
+export const updateLeagueVisibilitySchema = z.object({
+  leagueId: z.string(),
+  isPublic: z.boolean(),
+  password: z.string().optional(),
+  accountPassword: z.string().min(1, "Account password is required"),
+});

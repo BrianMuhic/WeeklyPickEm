@@ -44,7 +44,7 @@ export default async function GamesPage({
             leagueId={id}
             week={week}
             isCommissioner={isCommissioner}
-            isPrivate={!league.isPublic}
+            isPublic={league.isPublic}
           />
         </div>
         <LeagueNav leagueId={id} active="games" />

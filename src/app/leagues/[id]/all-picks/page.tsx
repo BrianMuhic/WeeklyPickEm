@@ -38,7 +38,7 @@ export default async function AllPicksPage({
             leagueId={id}
             week={week}
             isCommissioner={isCommissioner}
-            isPrivate={!league.isPublic}
+            isPublic={league.isPublic}
           />
         </div>
         <LeagueNav leagueId={id} active="picks-grid" />

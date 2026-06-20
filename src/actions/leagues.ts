@@ -8,7 +8,11 @@ import { currentSeasonYear, maxWeeksForLeague } from "@/lib/constants";
 import { canMakePicks, ensurePickDeadline } from "@/lib/games";
 import { prisma } from "@/lib/prisma";
 import { syncGamesForLeagueType, syncGamesForLeagueTypeWeek } from "@/lib/espn/sync";
-import { changeLeaguePasswordSchema, createLeagueSchema } from "@/lib/validations";
+import {
+  changeLeaguePasswordSchema,
+  createLeagueSchema,
+  updateLeagueVisibilitySchema,
+} from "@/lib/validations";
 import type { ActionResult } from "./auth";
 
 export async function createLeagueAction(
@@ -161,6 +165,64 @@ export async function changeLeaguePasswordAction(
 
   revalidatePath(`/leagues/${leagueId}`);
   return { success: "League password updated" };
+}
+
+export async function updateLeagueVisibilityAction(
+  _prev: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const user = await requireUser();
+
+  const isPublic =
+    formData.get("isPublic") === "on" || formData.get("isPublic") === "true";
+  const password = String(formData.get("password") || "");
+
+  const parsed = updateLeagueVisibilitySchema.safeParse({
+    leagueId: formData.get("leagueId"),
+    isPublic,
+    password: password || undefined,
+    accountPassword: formData.get("accountPassword"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || "Invalid input" };
+  }
+
+  const { leagueId, accountPassword } = parsed.data;
+
+  const league = await prisma.league.findUnique({ where: { id: leagueId } });
+  if (!league) return { error: "League not found" };
+  if (league.commissionerId !== user.id) {
+    return { error: "Only the commissioner can change league visibility" };
+  }
+  if (league.isPublic === isPublic) {
+    return { error: "League visibility is already set to this option" };
+  }
+
+  const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+  if (!dbUser || !(await verifyPassword(accountPassword, dbUser.passwordHash))) {
+    return { error: "Incorrect account password" };
+  }
+
+  if (!isPublic) {
+    if (!password) return { error: "Password is required for private leagues" };
+    await prisma.league.update({
+      where: { id: leagueId },
+      data: {
+        isPublic: false,
+        passwordHash: await hashPassword(password),
+      },
+    });
+  } else {
+    await prisma.league.update({
+      where: { id: leagueId },
+      data: { isPublic: true, passwordHash: null },
+    });
+  }
+
+  revalidatePath(`/leagues/${leagueId}`);
+  revalidatePath("/");
+  return { success: isPublic ? "League is now public" : "League is now private" };
 }
 
 export async function leaveLeagueAction(leagueId: string): Promise<ActionResult> {

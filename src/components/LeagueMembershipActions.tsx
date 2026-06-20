@@ -2,16 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { deleteLeagueAction, leaveLeagueAction } from "@/actions/leagues";
+import { leaveLeagueAction } from "@/actions/leagues";
 import { Alert } from "./Alert";
 
-export function LeagueMembershipActions({
-  leagueId,
-  isCommissioner,
-}: {
-  leagueId: string;
-  isCommissioner: boolean;
-}) {
+export function LeagueMembershipActions({ leagueId }: { leagueId: string }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -33,47 +27,17 @@ export function LeagueMembershipActions({
     });
   }
 
-  function handleDelete() {
-    if (
-      !confirm(
-        "Delete this league permanently? All members, picks, and deadlines will be removed."
-      )
-    ) {
-      return;
-    }
-
-    setError(null);
-    startTransition(async () => {
-      const result = await deleteLeagueAction(leagueId);
-      if (result?.error) setError(result.error);
-      else router.refresh();
-    });
-  }
-
   return (
     <div className="flex flex-col items-end gap-2">
       {error && <Alert type="error" message={error} />}
-      <div className="flex flex-wrap gap-2">
-        {isCommissioner ? (
-          <button
-            type="button"
-            className="btn btn-danger"
-            disabled={pending}
-            onClick={handleDelete}
-          >
-            {pending ? "Deleting..." : "Delete League"}
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="btn btn-danger"
-            disabled={pending}
-            onClick={handleLeave}
-          >
-            {pending ? "Leaving..." : "Leave League"}
-          </button>
-        )}
-      </div>
+      <button
+        type="button"
+        className="btn btn-danger"
+        disabled={pending}
+        onClick={handleLeave}
+      >
+        {pending ? "Leaving..." : "Leave League"}
+      </button>
     </div>
   );
 }
