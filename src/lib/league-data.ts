@@ -14,8 +14,10 @@ import { prisma } from "@/lib/prisma";
 import {
   computeSeasonStandings,
   computeWeeklyScores,
+  getUniquePickedGames,
   getWeeklyWinners,
-  isWeekComplete,
+  isGameCancelledOrPostponed,
+  isWeekCompleteForPickedGames,
 } from "@/lib/scoring";
 import type { SessionUser } from "@/lib/session";
 
@@ -118,6 +120,7 @@ export async function ensureLeaderboardScoresSynced(
 }
 
 async function syncStaleWeeksForSeason(
+  leagueId: string,
   leagueType: LeagueType,
   season: number,
   maxWeeks: number,
@@ -128,13 +131,25 @@ async function syncStaleWeeksForSeason(
 
   for (let week = maxWeeks; week >= 1 && synced < limit; week--) {
     const games = await getLeagueGames(leagueType, season, week);
-    if (games.length === 0 || isWeekComplete(games)) continue;
+    const gameIds = games.map((g) => g.id);
+    if (gameIds.length === 0) continue;
 
-    const latestKickoff = games.reduce(
-      (latest, game) => (game.kickoff > latest ? game.kickoff : latest),
-      games[0].kickoff
+    const picks = await prisma.pick.findMany({
+      where: { leagueId, gameId: { in: gameIds } },
+      include: { game: true },
+    });
+    if (picks.length === 0 || isWeekCompleteForPickedGames(picks)) continue;
+
+    const pickedGames = getUniquePickedGames(picks).filter(
+      (g) => !isGameCancelledOrPostponed(g.status)
     );
-    if (latestKickoff >= now) continue;
+    if (pickedGames.length === 0) continue;
+
+    const lastKickoff = pickedGames.reduce(
+      (latest, game) => (game.kickoff > latest ? game.kickoff : latest),
+      pickedGames[0].kickoff
+    );
+    if (lastKickoff >= now) continue;
 
     try {
       await syncGamesForLeagueTypeWeek(leagueType, season, week);
@@ -195,7 +210,7 @@ export async function getWeeklyLeaderboardData(leagueId: string, week: number, s
   }));
 
   const rows = computeWeeklyScores(members, picks);
-  const weekComplete = isWeekComplete(games);
+  const weekComplete = isWeekCompleteForPickedGames(picks);
   const winnerUsernames = weekComplete
     ? getWeeklyWinners(rows).map((winner) => winner.username)
     : [];
@@ -219,15 +234,22 @@ export async function getSeasonLeaderboard(leagueId: string, season: number) {
   }));
 
   const maxWeeks = maxWeeksForLeague(league.leagueType);
-  await syncStaleWeeksForSeason(league.leagueType, season, maxWeeks);
+  await syncStaleWeeksForSeason(leagueId, league.leagueType, season, maxWeeks);
 
   const weeklyScoresByWeek = new Map<number, ReturnType<typeof computeWeeklyScores>>();
 
   for (let week = 1; week <= maxWeeks; week++) {
     const games = await getLeagueGames(league.leagueType, season, week);
-    if (!isWeekComplete(games)) continue;
+    const gameIds = games.map((g) => g.id);
+    if (gameIds.length === 0) continue;
 
-    const scores = await getWeeklyLeaderboard(leagueId, week, season);
+    const picks = await prisma.pick.findMany({
+      where: { leagueId, gameId: { in: gameIds } },
+      include: { game: true },
+    });
+    if (!isWeekCompleteForPickedGames(picks)) continue;
+
+    const scores = computeWeeklyScores(members, picks);
     if (scores.length > 0) {
       weeklyScoresByWeek.set(week, scores);
     }

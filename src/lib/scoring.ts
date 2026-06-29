@@ -106,11 +106,43 @@ export function computeSeasonStandings(
   );
 }
 
+export function isGameCancelledOrPostponed(status: string): boolean {
+  const s = status.toLowerCase();
+  return s.includes("cancel") || s.includes("postpon") || s.includes("suspended");
+}
+
+export function isGameFinished(game: Game): boolean {
+  if (isGameCancelledOrPostponed(game.status)) return true;
+  if (getGameWinner(game) !== null) return true;
+  return (
+    game.status.includes("final") &&
+    game.awayScore != null &&
+    game.homeScore != null &&
+    game.homeScore === game.awayScore
+  );
+}
+
 export function isWeekComplete(games: Game[]) {
   if (games.length === 0) return false;
-  return games.every(
-    (g) =>
-      getGameWinner(g) !== null ||
-      (g.status.includes("final") && g.awayScore != null && g.homeScore != null && g.awayScore === g.homeScore)
+
+  const scheduledGames = games.filter((g) => !isGameCancelledOrPostponed(g.status));
+  if (scheduledGames.length === 0) return true;
+
+  const lastGame = scheduledGames.reduce((latest, game) =>
+    game.kickoff > latest.kickoff ? game : latest
   );
+
+  return isGameFinished(lastGame);
+}
+
+export function getUniquePickedGames(picks: PickWithGame[]): Game[] {
+  const games = new Map<string, Game>();
+  for (const pick of picks) {
+    games.set(pick.game.id, pick.game);
+  }
+  return Array.from(games.values());
+}
+
+export function isWeekCompleteForPickedGames(picks: PickWithGame[]) {
+  return isWeekComplete(getUniquePickedGames(picks));
 }
