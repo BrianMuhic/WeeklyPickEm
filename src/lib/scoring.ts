@@ -18,9 +18,23 @@ export interface SeasonStanding {
 
 type PickWithGame = Pick & { game: Game };
 
+export function getGameWinner(game: Game): "home" | "away" | null {
+  if (game.winner === "home" || game.winner === "away") return game.winner;
+  if (
+    game.status.includes("final") &&
+    game.awayScore != null &&
+    game.homeScore != null &&
+    game.awayScore !== game.homeScore
+  ) {
+    return game.awayScore > game.homeScore ? "away" : "home";
+  }
+  return null;
+}
+
 export function scorePick(pick: PickWithGame): number {
-  if (!pick.game.winner) return 0;
-  return pick.pick === pick.game.winner ? 1 : 0;
+  const winner = getGameWinner(pick.game);
+  if (!winner) return 0;
+  return pick.pick === winner ? 1 : 0;
 }
 
 export function computeWeeklyScores(
@@ -95,6 +109,8 @@ export function computeSeasonStandings(
 export function isWeekComplete(games: Game[]) {
   if (games.length === 0) return false;
   return games.every(
-    (g) => g.winner !== null || (g.status.includes("final") && g.awayScore === g.homeScore)
+    (g) =>
+      getGameWinner(g) !== null ||
+      (g.status.includes("final") && g.awayScore != null && g.homeScore != null && g.awayScore === g.homeScore)
   );
 }

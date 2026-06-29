@@ -1,7 +1,7 @@
 import { LeagueType } from "@/generated/prisma/client";
 import { notFound, redirect } from "next/navigation";
 import { currentSeasonYear, maxWeeksForLeague } from "@/lib/constants";
-import { syncGamesForLeagueType } from "@/lib/espn/sync";
+import { syncGamesForLeagueType, syncGamesForLeagueTypeWeek } from "@/lib/espn/sync";
 import {
   canMakePicks,
   ensurePickDeadline,
@@ -14,6 +14,7 @@ import { prisma } from "@/lib/prisma";
 import {
   computeSeasonStandings,
   computeWeeklyScores,
+  getWeeklyWinners,
   isWeekComplete,
 } from "@/lib/scoring";
 import type { SessionUser } from "@/lib/session";
@@ -101,6 +102,39 @@ export async function getUserPicksForWeek(
   return new Map(picks.map((p) => [p.gameId, p.pick]));
 }
 
+export async function ensureLeaderboardScoresSynced(
+  leagueType: LeagueType,
+  season: number,
+  viewedWeek: number
+) {
+  const maxWeeks = maxWeeksForLeague(leagueType);
+  const now = new Date();
+  const weeksToSync = new Set<number>([viewedWeek]);
+
+  for (let week = 1; week <= maxWeeks; week++) {
+    if (week === viewedWeek) continue;
+
+    const games = await getLeagueGames(leagueType, season, week);
+    if (games.length === 0 || isWeekComplete(games)) continue;
+
+    const latestKickoff = games.reduce(
+      (latest, game) => (game.kickoff > latest ? game.kickoff : latest),
+      games[0].kickoff
+    );
+    if (latestKickoff < now) {
+      weeksToSync.add(week);
+    }
+  }
+
+  for (const week of weeksToSync) {
+    try {
+      await syncGamesForLeagueTypeWeek(leagueType, season, week);
+    } catch (e) {
+      console.error("Failed to sync scores for week", week, e);
+    }
+  }
+}
+
 export async function getWeeklyLeaderboard(leagueId: string, week: number, season: number) {
   const league = await prisma.league.findUnique({
     where: { id: leagueId },
@@ -125,6 +159,38 @@ export async function getWeeklyLeaderboard(leagueId: string, week: number, seaso
   }));
 
   return computeWeeklyScores(members, picks);
+}
+
+export async function getWeeklyLeaderboardData(leagueId: string, week: number, season: number) {
+  const league = await prisma.league.findUnique({
+    where: { id: leagueId },
+    include: {
+      members: { include: { user: { select: { id: true, username: true, name: true } } } },
+    },
+  });
+  if (!league) return { rows: [], weekComplete: false, winnerUsernames: [] as string[] };
+
+  const games = await getLeagueGames(league.leagueType, season, week);
+  const gameIds = games.map((g) => g.id);
+
+  const picks = await prisma.pick.findMany({
+    where: { leagueId, gameId: { in: gameIds } },
+    include: { game: true },
+  });
+
+  const members = league.members.map((m) => ({
+    userId: m.user.id,
+    username: m.user.username,
+    name: m.user.name,
+  }));
+
+  const rows = computeWeeklyScores(members, picks);
+  const weekComplete = isWeekComplete(games);
+  const winnerUsernames = weekComplete
+    ? getWeeklyWinners(rows).map((winner) => winner.username)
+    : [];
+
+  return { rows, weekComplete, winnerUsernames };
 }
 
 export async function getSeasonLeaderboard(leagueId: string, season: number) {

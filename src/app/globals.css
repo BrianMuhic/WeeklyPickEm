@@ -169,6 +169,10 @@ textarea.field-input {
   background: #0b1220;
 }
 
+.data-table tbody tr.leaderboard-row-winner {
+  background: rgba(34, 197, 94, 0.18);
+}
+
 .data-table tbody tr td:first-child {
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;

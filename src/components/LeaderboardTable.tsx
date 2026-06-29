@@ -1,11 +1,17 @@
 export function WeeklyLeaderboard({
   rows,
+  weekComplete = false,
+  winnerUsernames = [],
 }: {
   rows: { username: string; name: string; correct: number; totalPicks: number }[];
+  weekComplete?: boolean;
+  winnerUsernames?: string[];
 }) {
   if (rows.length === 0) {
     return <p className="muted">No picks submitted yet for this week.</p>;
   }
+
+  const winners = new Set(winnerUsernames);
 
   return (
     <table className="data-table">
@@ -19,7 +25,10 @@ export function WeeklyLeaderboard({
       </thead>
       <tbody>
         {rows.map((row, i) => (
-          <tr key={row.username}>
+          <tr
+            key={row.username}
+            className={weekComplete && winners.has(row.username) ? "leaderboard-row-winner" : undefined}
+          >
             <td>{i + 1}</td>
             <td>
               <strong>@{row.username}</strong>

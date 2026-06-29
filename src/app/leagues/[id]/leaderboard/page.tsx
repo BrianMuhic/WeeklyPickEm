@@ -6,9 +6,10 @@ import { WeekSelector } from "@/components/WeekSelector";
 import { getCurrentUser } from "@/lib/auth";
 import { LEAGUE_TYPE_LABELS } from "@/lib/constants";
 import {
+  ensureLeaderboardScoresSynced,
   getLeagueContext,
   getSeasonLeaderboard,
-  getWeeklyLeaderboard,
+  getWeeklyLeaderboardData,
   leaguePathWithWeek,
 } from "@/lib/league-data";
 
@@ -34,7 +35,13 @@ export default async function LeaderboardPage({
 
   if (!isMember) redirect(`/leagues/${id}/join`);
 
-  const weeklyRows = await getWeeklyLeaderboard(id, week, league.season);
+  await ensureLeaderboardScoresSynced(league.leagueType, league.season, week);
+
+  const { rows: weeklyRows, weekComplete, winnerUsernames } = await getWeeklyLeaderboardData(
+    id,
+    week,
+    league.season
+  );
   const seasonRows = await getSeasonLeaderboard(id, league.season);
 
   return (
@@ -64,7 +71,11 @@ export default async function LeaderboardPage({
       <div className="card">
         <h2 className="mb-4 text-xl font-semibold">Week {week} Standings</h2>
         <p className="muted mb-4 text-sm">1 point per correct pick. Ties for 1st all receive a weekly win.</p>
-        <WeeklyLeaderboard rows={weeklyRows} />
+        <WeeklyLeaderboard
+          rows={weeklyRows}
+          weekComplete={weekComplete}
+          winnerUsernames={winnerUsernames}
+        />
       </div>
 
       <div className="card">
