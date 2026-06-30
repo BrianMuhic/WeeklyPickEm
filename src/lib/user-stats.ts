@@ -1,7 +1,8 @@
 import { getSeasonLeaderboard } from "@/lib/league-data";
+import { currentSeasonYear } from "@/lib/constants";
 import { LEAGUE_TYPES } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
-import { scorePick } from "@/lib/scoring";
+import { getGameWinner, scorePick } from "@/lib/scoring";
 import type { LeagueTypeValue } from "@/lib/types";
 
 export interface LeagueTypeBreakdown {
@@ -56,7 +57,7 @@ export async function getUserStats(userId: string): Promise<UserStats> {
   }
 
   for (const pick of picks) {
-    if (!pick.game.winner) continue;
+    if (!getGameWinner(pick.game)) continue;
     const type = pick.league.leagueType;
     byType[type].scored++;
     overallScored++;
@@ -65,9 +66,10 @@ export async function getUserStats(userId: string): Promise<UserStats> {
     overallCorrect += points;
   }
 
+  const season = currentSeasonYear();
   const places: number[] = [];
   for (const membership of memberships) {
-    const standings = await getSeasonLeaderboard(membership.league.id, membership.league.season);
+    const standings = await getSeasonLeaderboard(membership.league.id, season);
     const rank = standings.findIndex((s) => s.userId === userId);
     if (rank !== -1) places.push(rank + 1);
   }

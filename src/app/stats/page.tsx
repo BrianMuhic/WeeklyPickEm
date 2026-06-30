@@ -5,6 +5,8 @@ import { LEAGUE_TYPE_LABELS } from "@/lib/constants";
 import { LEAGUE_TYPES } from "@/lib/types";
 import { getUserStats } from "@/lib/user-stats";
 
+export const dynamic = "force-dynamic";
+
 function formatPercentage(value: number | null) {
   if (value === null) return "—";
   return `${value.toFixed(1)}%`;

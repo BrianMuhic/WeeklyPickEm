@@ -123,6 +123,7 @@ export async function fetchScoresAction(leagueId: string, week: number): Promise
     await finalizeWeeklyResults(leagueId, week, season);
     revalidatePath(`/leagues/${leagueId}`);
     revalidatePath(`/leagues/${leagueId}/leaderboard`);
+    revalidatePath("/stats");
     return { success: "Scores updated successfully" };
   } catch (e) {
     console.error("Fetch scores error:", e);
